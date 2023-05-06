@@ -78,6 +78,9 @@ func main() {
 	msLabel2 := widget.NewLabel("Email inválido")
 	msLabel2.Hide()
 
+	msLabel3 := widget.NewLabel("Por favor complete todos los campos.")
+	msLabel3.Hide()
+
 	searchButton := widget.NewButton("Buscar", func() {
 		var p Person
 
@@ -116,6 +119,10 @@ func main() {
 	searchButton.Hide()
 
 	StartButton := widget.NewButton("Start", func() {
+		if nameEntry.Text == "" || lastnameEntry.Text == "" || emailEntry.Text == "" || genresEntry.Text == "" {
+			msLabel3.Show()
+			return
+		}
 		var p Person
 
 		p.Name = nameEntry.Text
@@ -157,6 +164,7 @@ func main() {
 		StartButton,
 		msLabel,
 		msLabel2,
+		msLabel3,
 		searchButton,
 		resultsLabel,
 	)
