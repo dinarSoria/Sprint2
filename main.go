@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/mail"
 	"strings"
 	"time"
 
@@ -74,6 +75,9 @@ func main() {
 
 	resultsLabel := widget.NewLabel("Results")
 
+	msLabel2 := widget.NewLabel("Email inválido")
+	msLabel2.Hide()
+
 	searchButton := widget.NewButton("Buscar", func() {
 		var p Person
 
@@ -116,7 +120,13 @@ func main() {
 
 		p.Name = nameEntry.Text
 		p.Lastname = lastnameEntry.Text
-		p.Email = emailEntry.Text
+		// Check if the email is valid
+		email, err := mail.ParseAddress(emailEntry.Text)
+		if err != nil {
+			msLabel2.Show()
+			return
+		}
+		p.Email = email.Address
 		p.Musicalgenres = strings.Split(genresEntry.Text, ",")
 
 		// Check if a person with the same email already exists
@@ -146,16 +156,11 @@ func main() {
 		container.NewHBox(emailLabel, emailEntry),
 		StartButton,
 		msLabel,
+		msLabel2,
 		searchButton,
 		resultsLabel,
 	)
 
 	window.SetContent(content)
 	window.ShowAndRun()
-
-	//fmt.Print("Ingrese sus generos musicales separados por comas: ")
-	//var genres string
-	//fmt.Scan(&genres)
-	//p.musicalgenres = strings.Split(genres, ",")
-
 }
