@@ -100,6 +100,30 @@ func main() {
 	msLabel3 := widget.NewLabel("Por favor complete todos los campos.")
 	msLabel3.Hide()
 
+	msLabel4 := widget.NewLabel("Lamentablemente no hay match!")
+	msLabel4.Hide()
+
+	msLabel5 := widget.NewLabel("Si desea puede borrar su cuenta previamente creada, o registrarse con otro email.")
+	msLabel5.Hide()
+
+	deletButton := widget.NewButton("Borrar usuario", func() {
+		email := emailEntry.Text
+		// Delete the user from the database
+		deleteFilter := bson.M{"email": email}
+		res, err := Collection.DeleteOne(context.Background(), deleteFilter)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("Se eliminó %v usuario(s) de la base de datos\n", res.DeletedCount)
+
+		// Clear the entry fields
+		nameEntry.SetText("")
+		lastnameEntry.SetText("")
+		emailEntry.SetText("")
+		genresEntry.SetText("")
+	})
+	deletButton.Hide()
+
 	searchButton := widget.NewButton("Buscar", func() {
 		var p Person
 
@@ -127,7 +151,14 @@ func main() {
 		}
 
 		if len(results) == 0 {
-			fmt.Println("No se encontraron resultados.")
+			msLabel4.Show()
+			// Eliminar al usuario de la base de datos
+			//deleteFilter := bson.M{"email": p.Email}
+			//res, err := Collection.DeleteOne(context.Background(), deleteFilter)
+			//if err != nil {
+			//	panic(err)
+			//}
+			//fmt.Printf("Se eliminó %v usuario(s) de la base de datos\n", res.DeletedCount)
 			return
 		}
 
@@ -170,7 +201,7 @@ func main() {
 	})
 	searchButton.Hide()
 
-	StartButton := container.NewPadded(widget.NewButton("Start", func() {
+	StartButton := container.NewPadded(widget.NewButton("Registrarse", func() {
 		if nameEntry.Text == "" || lastnameEntry.Text == "" || emailEntry.Text == "" || genresEntry.Text == "" {
 			msLabel3.Show()
 			return
@@ -195,6 +226,9 @@ func main() {
 		if err := existingPerson.Decode(&per); err == nil {
 			// An object with the same email already exists, inform the user
 			msLabel.Show()
+			searchButton.Hide()
+			msLabel5.Show()
+			deletButton.Show()
 			return
 		}
 
@@ -202,7 +236,10 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		msLabel.Hide()
 		searchButton.Show()
+		msLabel5.Hide()
+		deletButton.Hide()
 		fmt.Println("Inserted document with ID:", result.InsertedID)
 		widget.NewLabel(fmt.Sprintf("Usuario registrado con ID %v", result.InsertedID)).Show()
 
@@ -221,7 +258,10 @@ func main() {
 		msLabel,
 		msLabel2,
 		msLabel3,
+		deletButton,
 		searchButton,
+		msLabel4,
+		msLabel5,
 		resultsLabel,
 	)
 	window.SetContent(content)
