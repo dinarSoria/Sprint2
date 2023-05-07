@@ -10,6 +10,8 @@ import (
 	"gopkg.in/gomail.v2"
 
 	//"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/emailpriority"
+	//"fyne.io/fyne"
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 
@@ -58,7 +60,9 @@ func main() {
 	Collection := DataB.Collection("Persons")
 
 	app := app.New()
-	window := app.NewWindow("Menu")
+	window := app.NewWindow("...")
+
+	PrincipalLabel := widget.NewLabelWithStyle("Musmatch", fyne.TextAlignCenter, fyne.TextStyle{Bold: true, Italic: true, Monospace: true})
 
 	nameEntry := widget.NewEntry()
 	nameLabel := widget.NewLabel("Nombre:")
@@ -72,10 +76,23 @@ func main() {
 	genresEntry := widget.NewEntry()
 	genresLabel := widget.NewLabel("Géneros musicales favoritos (separados por coma):")
 
+	grid := container.NewGridWithColumns(2,
+		container.NewPadded(nameLabel),
+		container.NewPadded(nameEntry),
+		container.NewPadded(lastnameLabel),
+		container.NewPadded(lastnameEntry),
+		container.NewPadded(emailLabel),
+		container.NewPadded(emailEntry),
+		container.NewPadded(genresLabel),
+		container.NewPadded(genresEntry),
+	)
+	//grid.SetColumnAlignment(1, container.GridAlignTrailing)
+
 	msLabel := widget.NewLabel("Ya existe un usuario registrado con ese email.")
 	msLabel.Hide()
 
-	resultsLabel := widget.NewLabel("Results")
+	resultsLabel := widget.NewLabel("Matchs:")
+	resultsLabel.Hide()
 
 	msLabel2 := widget.NewLabel("Email inválido")
 	msLabel2.Hide()
@@ -121,6 +138,7 @@ func main() {
 		}
 
 		resultsLabel.SetText(resultString)
+		resultsLabel.Show()
 
 		// set up email message
 		message := gomail.NewMessage()
@@ -152,7 +170,7 @@ func main() {
 	})
 	searchButton.Hide()
 
-	StartButton := widget.NewButton("Start", func() {
+	StartButton := container.NewPadded(widget.NewButton("Start", func() {
 		if nameEntry.Text == "" || lastnameEntry.Text == "" || emailEntry.Text == "" || genresEntry.Text == "" {
 			msLabel3.Show()
 			return
@@ -188,13 +206,17 @@ func main() {
 		fmt.Println("Inserted document with ID:", result.InsertedID)
 		widget.NewLabel(fmt.Sprintf("Usuario registrado con ID %v", result.InsertedID)).Show()
 
-	})
+	}))
 
 	content := container.NewVBox(
-		container.NewHBox(nameLabel, nameEntry),
-		container.NewHBox(lastnameLabel, lastnameEntry),
-		container.NewHBox(genresLabel, genresEntry),
-		container.NewHBox(emailLabel, emailEntry),
+		PrincipalLabel,
+		widget.NewSeparator(),
+		grid,
+		//container.NewHBox(nameLabel, nameEntry),
+		//container.NewHBox(lastnameLabel, lastnameEntry),
+		//container.NewHBox(genresLabel, genresEntry),
+		//container.NewHBox(emailLabel, emailEntry),
+		//widget.NewSeparator(),
 		StartButton,
 		msLabel,
 		msLabel2,
