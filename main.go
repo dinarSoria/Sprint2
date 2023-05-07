@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"gopkg.in/gomail.v2"
+
 	//"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/emailpriority"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -85,7 +87,11 @@ func main() {
 		var p Person
 
 		p.Musicalgenres = strings.Split(genresEntry.Text, ",")
-		filter := bson.M{"Musicalgenres": bson.M{"$in": p.Musicalgenres}}
+		p.Email = emailEntry.Text
+		filter := bson.M{
+			"Musicalgenres": bson.M{"$in": p.Musicalgenres},
+			"email":         bson.M{"$ne": p.Email},
+		}
 
 		cur, err := Collection.Find(context.Background(), filter)
 		if err != nil {
@@ -115,6 +121,34 @@ func main() {
 		}
 
 		resultsLabel.SetText(resultString)
+
+		// set up email message
+		message := gomail.NewMessage()
+		message.SetHeader("From", "soriadinar93@gmail.com")
+		message.SetHeader("To", p.Email)
+		message.SetHeader("Subject", "Resultados de la búsqueda de géneros musicales")
+
+		// create the email body
+		var body string
+		body += "Estimado/a " + p.Name + ",\n\n"
+		body += "Aquí están los resultados de la búsqueda de géneros musicales:\n\n"
+		body += resultString
+		message.SetBody("text/plain", body)
+
+		// create the email sender
+		sender := gomail.NewDialer("smtp.gmail.com", 587, "sprint2netlabs@gmail.com", "ekxgvfggqgjaiehh")
+
+		if p.Email == "" {
+			fmt.Println("La dirección de correo electrónico está vacía.")
+			return
+		}
+
+		// send the email
+		if err := sender.DialAndSend(message); err != nil {
+			fmt.Println(err)
+			fmt.Println("no se mandó")
+		}
+		fmt.Println("Correo electrónico enviado a", emailEntry.Text)
 	})
 	searchButton.Hide()
 
@@ -168,7 +202,6 @@ func main() {
 		searchButton,
 		resultsLabel,
 	)
-
 	window.SetContent(content)
 	window.ShowAndRun()
 }
